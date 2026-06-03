@@ -1,0 +1,7 @@
+{
+  "name": "ki-bot-analyzer",
+  "version": "1.0.0",
+  "description": "KI-Bot Zugriffs-Analyzer – prüft, ob KI-Bots (ChatGPT, Claude, Perplexity) eine Website lesen dürfen.",
+  "type": "module",
+  "private": true
+}

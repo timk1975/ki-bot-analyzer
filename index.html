@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KI-Bot Zugriffs-Analyzer</title>
+  <meta name="description" content="Prüfe kostenlos, ob KI-Bots wie ChatGPT, Claude und Perplexity deine Website lesen dürfen – wichtig für deine Sichtbarkeit in KI-Suchen." />
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       HIER ANPASSEN: Dein Branding (Name, Untertitel, Button-Link)
+       Einfach die Texte zwischen den Anführungszeichen ändern.
+  ════════════════════════════════════════════════════════════════════ -->
+  <script>
+    const BRAND = {
+      name: "Tim Klötzing",
+      tagline: "KI · Online-Marketing · Sichtbarkeit",
+      ctaText: "Kostenloses Erstgespräch",
+      ctaUrl: "#",                 // z. B. "https://tim-kloetzing.de/kontakt"
+      footerText: "Hilfe bei deiner KI-Strategie? Ich unterstütze dich bei Sichtbarkeit in KI-Suchen.",
+      privacyUrl: "#",
+      year: new Date().getFullYear()
+    };
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin .8s linear infinite; }
+  </style>
+</head>
+
+<body class="bg-white text-slate-800">
+
+  <!-- Kopfzeile -->
+  <header class="border-b border-slate-100">
+    <div class="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-blue-600 text-xl">⚡</span>
+        <div>
+          <div id="brand-name" class="font-bold text-slate-900 leading-tight"></div>
+          <div id="brand-tagline" class="text-[11px] text-slate-400 leading-tight"></div>
+        </div>
+      </div>
+      <a id="cta-top" href="#" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition"></a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="bg-slate-50 border-b border-slate-100">
+    <div class="max-w-3xl mx-auto px-5 py-14 text-center">
+      <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">KI-Bot Zugriffs-Analyzer</h1>
+      <p class="mt-4 text-slate-500 leading-relaxed">
+        Viele Websites sperren KI-Crawler unbewusst aus – und verschenken so Sichtbarkeit in KI-gestützten Suchen.
+        Teste in Echtzeit, wie die Bots von OpenAI (ChatGPT), Anthropic (Claude) und Perplexity deine Seite wirklich sehen.
+      </p>
+    </div>
+  </section>
+
+  <!-- Eingabe -->
+  <section class="max-w-3xl mx-auto px-5 mt-10">
+    <div class="border border-slate-200 rounded-xl p-6 shadow-sm">
+      <label for="url" class="block text-sm font-medium text-slate-700 mb-2">Website-Adresse</label>
+      <form id="form" class="flex gap-3">
+        <input id="url" type="text" inputmode="url" autocomplete="off"
+               placeholder="z. B. tim-kloetzing.de"
+               class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        <button id="submit" type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition whitespace-nowrap flex items-center gap-2">
+          <span id="submit-label">Analysieren</span>
+          <span id="submit-spinner" class="hidden w-4 h-4 border-2 border-white/40 border-t-white rounded-full spin"></span>
+        </button>
+      </form>
+      <p class="text-xs text-slate-400 mt-2">Gib eine beliebige Web-Adresse ein, um zu testen, wie KI-Bots darauf zugreifen.</p>
+      <p id="error" class="hidden mt-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+    </div>
+  </section>
+
+  <!-- Ergebnisse -->
+  <section id="results" class="hidden max-w-4xl mx-auto px-5 mt-8">
+    <div class="border border-slate-200 rounded-xl p-6 shadow-sm">
+      <h2 class="font-semibold text-slate-900 mb-4">Analyse-Ergebnisse</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100">
+              <th class="text-left font-medium py-2 pr-3">KI-Bot</th>
+              <th class="text-left font-medium py-2 px-3">Status</th>
+              <th class="text-left font-medium py-2 px-3">HTTP</th>
+              <th class="text-left font-medium py-2 px-3">robots.txt</th>
+              <th class="text-left font-medium py-2 px-3">Meta-Robots</th>
+              <th class="text-right font-medium py-2 pl-3">Antwortzeit</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+        <span id="tested-url" class="text-xs text-slate-400"></span>
+        <button id="reset" class="text-sm border border-slate-300 hover:bg-slate-50 rounded-lg px-4 py-1.5 transition">Andere Adresse testen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Erklär-Spalten -->
+  <section class="max-w-5xl mx-auto px-5 mt-16 grid md:grid-cols-3 gap-8">
+    <div>
+      <div class="text-blue-600 text-2xl mb-2">🛡️</div>
+      <h3 class="font-semibold text-slate-900 mb-2">Die Realität des KI-Zugriffs</h3>
+      <p class="text-sm text-slate-500 leading-relaxed mb-3">
+        Deine robots.txt erlaubt vielleicht den Zugriff – aber CDNs, Firewalls und Sicherheitssysteme erzählen oft eine andere Geschichte.
+        Häufig werden KI-Bots ungewollt geblockt und du verschenkst Sichtbarkeit.
+      </p>
+      <ul class="text-sm text-slate-500 space-y-1">
+        <li class="flex gap-2"><span class="text-green-500">✓</span> CDN-Sperren</li>
+        <li class="flex gap-2"><span class="text-green-500">✓</span> Firewall-Regeln</li>
+        <li class="flex gap-2"><span class="text-green-500">✓</span> Rate-Limiting</li>
+        <li class="flex gap-2"><span class="text-green-500">✓</span> Geografische Sperren</li>
+      </ul>
+    </div>
+    <div>
+      <div class="text-blue-600 text-2xl mb-2">🤖</div>
+      <h3 class="font-semibold text-slate-900 mb-2">Was wir testen</h3>
+      <p class="text-sm text-slate-500 leading-relaxed mb-3">
+        Das Tool sendet echte Anfragen mit den tatsächlichen User-Agents, die KI-Suche und -Antworten antreiben.
+      </p>
+      <p class="text-sm text-slate-600 font-medium">OpenAI-Bots:</p>
+      <p class="text-sm text-slate-500 mb-2">GPTBot, ChatGPT-User, OAI-SearchBot</p>
+      <p class="text-sm text-slate-600 font-medium">Anthropic-Bots:</p>
+      <p class="text-sm text-slate-500 mb-2">ClaudeBot, Claude-User</p>
+      <p class="text-sm text-slate-600 font-medium">Perplexity-Bots:</p>
+      <p class="text-sm text-slate-500">PerplexityBot, Perplexity-User</p>
+    </div>
+    <div>
+      <div class="text-blue-600 text-2xl mb-2">📈</div>
+      <h3 class="font-semibold text-slate-900 mb-2">Ergebnisse richtig deuten</h3>
+      <p class="text-sm text-slate-500 leading-relaxed mb-3">
+        Zu verstehen, wie KI-Bots deine Seite sehen, ist entscheidend für moderne SEO.
+      </p>
+      <div class="space-y-2 text-sm">
+        <div><span class="inline-block bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded">Erlaubt</span>
+          <span class="text-slate-500"> – Bot darf crawlen und deine Inhalte zitieren.</span></div>
+        <div><span class="inline-block bg-red-100 text-red-700 text-xs font-medium px-2 py-0.5 rounded">Blockiert</span>
+          <span class="text-slate-500"> – Kein Zugriff. Du verschenkst KI-Sichtbarkeit.</span></div>
+        <div><span class="inline-block bg-amber-100 text-amber-700 text-xs font-medium px-2 py-0.5 rounded">Fehler</span>
+          <span class="text-slate-500"> – Verbindung gescheitert. Deutet oft auf bot-spezifische Sperren hin.</span></div>
+      </div>
+      <p class="text-xs text-slate-400 mt-3">Tipp: KI-Bots respektieren robots.txt, können aber anderswo geblockt werden. Prüfe immer Richtlinien <em>und</em> tatsächlichen Zugriff.</p>
+    </div>
+  </section>
+
+  <!-- Bekannte Bots -->
+  <section class="max-w-5xl mx-auto px-5 mt-16">
+    <h2 class="text-center text-2xl font-bold text-slate-900 mb-8">Bekannte KI-Bot User-Agents</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="border border-slate-200 rounded-xl overflow-hidden">
+        <div class="bg-blue-600 text-white font-semibold px-5 py-3">OpenAI-Bots</div>
+        <div class="p-5 space-y-4 text-sm">
+          <div><div class="font-semibold text-slate-900">GPTBot</div><div class="text-slate-500">Trainings-Crawler für OpenAI-Modelle. Sperre = Inhalte fließen nicht ins Modelltraining.</div></div>
+          <div><div class="font-semibold text-slate-900">ChatGPT-User</div><div class="text-slate-500">Aktiv beim Browsen in ChatGPT. Sperre = ChatGPT erreicht deine Inhalte live nicht.</div></div>
+          <div><div class="font-semibold text-slate-900">OAI-SearchBot</div><div class="text-slate-500">Such-Crawler von OpenAI. Sperre = Ausschluss aus OpenAI-Suchergebnissen.</div></div>
+        </div>
+      </div>
+      <div class="border border-slate-200 rounded-xl overflow-hidden">
+        <div class="bg-cyan-600 text-white font-semibold px-5 py-3">Anthropic-Bots</div>
+        <div class="p-5 space-y-4 text-sm">
+          <div><div class="font-semibold text-slate-900">ClaudeBot</div><div class="text-slate-500">Allgemeiner Crawler von Anthropic. Sperre = kein Zugriff für Claude-Systeme.</div></div>
+          <div><div class="font-semibold text-slate-900">Claude-User</div><div class="text-slate-500">Aktiv in Echtzeit-Claude-Sessions. Sperre = Claude kann deine Inhalte nicht abrufen.</div></div>
+        </div>
+      </div>
+      <div class="border border-slate-200 rounded-xl overflow-hidden">
+        <div class="bg-emerald-600 text-white font-semibold px-5 py-3">Perplexity-Bots</div>
+        <div class="p-5 space-y-4 text-sm">
+          <div><div class="font-semibold text-slate-900">PerplexityBot</div><div class="text-slate-500">Web-Crawler von Perplexity. Sperre = nicht in der Perplexity-Suche enthalten.</div></div>
+          <div><div class="font-semibold text-slate-900">Perplexity-User</div><div class="text-slate-500">Aktiv bei Echtzeit-Antworten. Sperre = keine Zitate in Live-Antworten.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technische Hinweise -->
+  <section class="max-w-5xl mx-auto px-5 mt-12">
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-6">
+      <h3 class="font-semibold text-slate-900 mb-4">📌 Technische Hinweise</h3>
+      <div class="grid md:grid-cols-2 gap-6 text-sm">
+        <div>
+          <p class="font-medium text-slate-700 mb-1">Häufige Sperr-Ursachen:</p>
+          <ul class="text-slate-500 space-y-1 list-disc list-inside">
+            <li><strong>403-Status trotz „Erlaubt":</strong> Sperre durch CDN/Firewall</li>
+            <li><strong>Verbindungsfehler:</strong> Sperre auf Server-Ebene</li>
+            <li><strong>Andere Antwort je Bot:</strong> User-Agent-basierte Auslieferung</li>
+          </ul>
+        </div>
+        <div>
+          <p class="font-medium text-slate-700 mb-1">Grenzen des Tests:</p>
+          <ul class="text-slate-500 space-y-1 list-disc list-inside">
+            <li>Ergebnisse können je nach Standort variieren</li>
+            <li>CDN-Caching kann Konsistenz beeinflussen</li>
+            <li>Rate-Limiting kann Folgeanfragen treffen</li>
+          </ul>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 mt-4 border-t border-slate-200 pt-3">
+        ℹ️ Hinweis: Die Tests basieren auf offizieller Dokumentation und beobachtetem Verhalten. Unternehmen veröffentlichen selten vollständige technische Spezifikationen ihrer Crawler.
+      </p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-300 mt-16">
+    <div class="max-w-5xl mx-auto px-5 py-12">
+      <div class="text-center pb-8 border-b border-slate-700">
+        <p id="footer-text" class="text-slate-400 mb-4"></p>
+        <a id="cta-footer" href="#" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg transition"></a>
+      </div>
+      <div class="flex flex-col md:flex-row justify-between items-center gap-3 pt-6 text-sm text-slate-500">
+        <span>© <span id="footer-year"></span> <span id="footer-name"></span>. Alle Rechte vorbehalten.</span>
+        <a id="footer-privacy" href="#" class="hover:text-slate-300">Datenschutz</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Branding aus dem BRAND-Objekt einsetzen
+    document.getElementById("brand-name").textContent = BRAND.name;
+    document.getElementById("brand-tagline").textContent = BRAND.tagline;
+    document.getElementById("footer-name").textContent = BRAND.name;
+    document.getElementById("footer-year").textContent = BRAND.year;
+    document.getElementById("footer-text").textContent = BRAND.footerText;
+    for (const id of ["cta-top", "cta-footer"]) {
+      const el = document.getElementById(id);
+      el.textContent = BRAND.ctaText;
+      el.href = BRAND.ctaUrl;
+    }
+    document.getElementById("footer-privacy").href = BRAND.privacyUrl;
+
+    // Status-Darstellung
+    const STATUS = {
+      allowed:  { label: "Erlaubt",   cls: "bg-green-100 text-green-700" },
+      blocked:  { label: "Blockiert", cls: "bg-red-100 text-red-700" },
+      error:    { label: "Fehler",    cls: "bg-amber-100 text-amber-700" },
+    };
+
+    const form = document.getElementById("form");
+    const urlInput = document.getElementById("url");
+    const errorBox = document.getElementById("error");
+    const resultsSection = document.getElementById("results");
+    const resultsBody = document.getElementById("results-body");
+    const submitBtn = document.getElementById("submit");
+    const submitLabel = document.getElementById("submit-label");
+    const submitSpinner = document.getElementById("submit-spinner");
+
+    function setLoading(on) {
+      submitBtn.disabled = on;
+      submitBtn.classList.toggle("opacity-70", on);
+      submitLabel.textContent = on ? "Analysiere…" : "Analysieren";
+      submitSpinner.classList.toggle("hidden", !on);
+    }
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.classList.remove("hidden");
+    }
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;" }[c]));
+    }
+
+    function renderRow(r) {
+      const st = STATUS[r.status] || STATUS.error;
+      const meta = r.robotsMeta
+        ? `<span class="text-green-600">${esc(r.robotsMeta)}</span>`
+        : `<span class="text-slate-400">kein Meta-Tag (Standard: index, follow)</span>`;
+      const robots = r.robotsTxt
+        ? `<span class="text-green-500">✓</span>`
+        : `<span class="text-red-500">✕</span>`;
+      return `
+        <tr class="border-b border-slate-50">
+          <td class="py-3 pr-3">
+            <div class="font-semibold text-slate-900">${esc(r.name)}</div>
+            <div class="text-xs text-slate-400">${esc(r.vendor)}</div>
+          </td>
+          <td class="py-3 px-3"><span class="inline-block text-xs font-medium px-2 py-0.5 rounded ${st.cls}">${st.label}</span></td>
+          <td class="py-3 px-3 text-slate-600">${r.http ?? "—"}</td>
+          <td class="py-3 px-3">${robots}</td>
+          <td class="py-3 px-3 text-xs max-w-[220px]">${meta}</td>
+          <td class="py-3 pl-3 text-right text-slate-600">${r.responseTime ?? "—"}</td>
+        </tr>`;
+    }
+
+    async function analyze(url) {
+      errorBox.classList.add("hidden");
+      setLoading(true);
+      try {
+        const res = await fetch("/api/analyze?url=" + encodeURIComponent(url));
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          showError(data.error || "Die Analyse konnte nicht durchgeführt werden.");
+          return;
+        }
+        resultsBody.innerHTML = data.results.map(renderRow).join("");
+        document.getElementById("tested-url").textContent = "Getestete Adresse: " + data.url;
+        resultsSection.classList.remove("hidden");
+        resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (e) {
+        showError("Verbindungsfehler. Bitte versuche es gleich noch einmal.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      if (!url) { showError("Bitte gib eine Website-Adresse ein."); return; }
+      analyze(url);
+    });
+
+    document.getElementById("reset").addEventListener("click", () => {
+      resultsSection.classList.add("hidden");
+      urlInput.value = "";
+      urlInput.focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // Höhe an die Eltern-Seite (WordPress-iframe) melden, damit es sich automatisch anpasst.
+    function postHeight() {
+      const h = document.documentElement.scrollHeight;
+      try { parent.postMessage({ type: "kiBotAnalyzerHeight", height: h }, "*"); } catch (e) {}
+    }
+    if (window.ResizeObserver) new ResizeObserver(postHeight).observe(document.body);
+    window.addEventListener("load", postHeight);
+</script>
+</body>
+</html>
