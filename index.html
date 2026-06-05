@@ -7,8 +7,7 @@
   <meta name="description" content="Prüfe kostenlos, ob KI-Bots wie ChatGPT, Claude und Perplexity deine Website lesen dürfen – wichtig für deine Sichtbarkeit in KI-Suchen." />
 
   <!-- ════════════════════════════════════════════════════════════════════
-       HIER ANPASSEN: Dein Branding (Name, Untertitel, Button-Link)
-       Einfach die Texte zwischen den Anführungszeichen ändern.
+       HIER ANPASSEN: Dein Branding
   ════════════════════════════════════════════════════════════════════ -->
   <script>
     const BRAND = {
@@ -27,26 +26,64 @@
     body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .spin { animation: spin .8s linear infinite; }
+
+    /* Bot-Tabelle: auf Mobile als Karten, ab 768px als echte Tabelle */
+    @media (max-width: 767px) {
+      .bot-table thead { display: none; }
+      .bot-table, .bot-table tbody, .bot-table tr, .bot-table td { display: block; width: 100%; }
+      .bot-table tr {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.75rem 0.875rem;
+        margin-bottom: 0.625rem;
+        background: #fff;
+      }
+      .bot-table td {
+        padding: 0.25rem 0;
+        text-align: left !important;
+        max-width: none !important;
+        border: 0;
+      }
+      .bot-table td[data-label]:not(.bot-name) {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.3rem 0;
+        border-top: 1px dashed #f1f5f9;
+      }
+      .bot-table td[data-label]:not(.bot-name)::before {
+        content: attr(data-label);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #94a3b8;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .bot-table td.bot-name { padding-bottom: 0.5rem; }
+    }
   </style>
 </head>
 
 <body class="bg-white text-slate-800">
 
-  <!-- Kopfzeile -->
   <header class="border-b border-slate-100">
-    <div class="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-blue-600 text-xl">⚡</span>
-        <div>
-          <div id="brand-name" class="font-bold text-slate-900 leading-tight"></div>
-          <div id="brand-tagline" class="text-[11px] text-slate-400 leading-tight"></div>
+    <div class="max-w-5xl mx-auto px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="text-blue-600 text-xl flex-shrink-0">⚡</span>
+        <div class="min-w-0">
+          <div id="brand-name" class="font-bold text-slate-900 leading-tight text-sm sm:text-base truncate"></div>
+          <div id="brand-tagline" class="text-[10px] sm:text-[11px] text-slate-400 leading-tight truncate"></div>
         </div>
       </div>
-      <a id="cta-top" href="#" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition"></a>
+      <a id="cta-top" href="#" class="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-2 rounded-lg transition whitespace-nowrap flex-shrink-0">
+        <span class="hidden sm:inline" id="cta-top-long"></span>
+        <span class="sm:hidden" id="cta-top-short">Termin</span>
+      </a>
     </div>
   </header>
 
-  <!-- Hero -->
   <section class="bg-slate-50 border-b border-slate-100">
     <div class="max-w-3xl mx-auto px-5 py-14 text-center">
       <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">KI-Bot Zugriffs-Analyzer</h1>
@@ -57,16 +94,15 @@
     </div>
   </section>
 
-  <!-- Eingabe -->
-  <section class="max-w-3xl mx-auto px-5 mt-10">
-    <div class="border border-slate-200 rounded-xl p-6 shadow-sm">
+  <section class="max-w-3xl mx-auto px-4 sm:px-5 mt-8 sm:mt-10">
+    <div class="border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
       <label for="url" class="block text-sm font-medium text-slate-700 mb-2">Website-Adresse</label>
-      <form id="form" class="flex gap-3">
+      <form id="form" class="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <input id="url" type="text" inputmode="url" autocomplete="off"
                placeholder="z. B. tim-kloetzing.de"
-               class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+               class="flex-1 min-w-0 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
         <button id="submit" type="submit"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition whitespace-nowrap flex items-center gap-2">
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition whitespace-nowrap flex items-center justify-center gap-2">
           <span id="submit-label">Analysieren</span>
           <span id="submit-spinner" class="hidden w-4 h-4 border-2 border-white/40 border-t-white rounded-full spin"></span>
         </button>
@@ -76,12 +112,11 @@
     </div>
   </section>
 
-  <!-- Ergebnisse -->
-  <section id="results" class="hidden max-w-4xl mx-auto px-5 mt-8">
-    <div class="border border-slate-200 rounded-xl p-6 shadow-sm">
+  <section id="results" class="hidden max-w-4xl mx-auto px-4 sm:px-5 mt-8">
+    <div class="border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
       <h2 class="font-semibold text-slate-900 mb-4">Analyse-Ergebnisse</h2>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+      <div class="md:overflow-x-auto">
+        <table class="bot-table w-full text-sm">
           <thead>
             <tr class="text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100">
               <th class="text-left font-medium py-2 pr-3">KI-Bot</th>
@@ -95,32 +130,31 @@
           <tbody id="results-body"></tbody>
         </table>
       </div>
-      <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-        <span id="tested-url" class="text-xs text-slate-400"></span>
-        <button id="reset" class="text-sm border border-slate-300 hover:bg-slate-50 rounded-lg px-4 py-1.5 transition">Andere Adresse testen</button>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 pt-4 border-t border-slate-100">
+        <span id="tested-url" class="text-xs text-slate-400 break-all"></span>
+        <button id="reset" class="text-sm border border-slate-300 hover:bg-slate-50 rounded-lg px-4 py-1.5 transition whitespace-nowrap self-start sm:self-auto">Andere Adresse testen</button>
       </div>
     </div>
 
-    <!-- Call-to-Action: direkt unter der Ergebnis-Tabelle -->
-    <div class="mt-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-7 md:p-9 shadow-lg">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div class="md:flex-1">
+    <div class="mt-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-5 sm:p-7 md:p-9 shadow-lg">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 md:gap-6">
+        <div class="md:flex-1 min-w-0">
           <div class="flex items-center gap-2 text-blue-100 text-xs font-semibold tracking-wide uppercase mb-2">
             <span>💬</span><span>Nächster Schritt</span>
           </div>
-          <h3 class="text-xl md:text-2xl font-bold leading-snug mb-2">
+          <h3 class="text-lg sm:text-xl md:text-2xl font-bold leading-snug mb-2">
             Möchtest du das Ergebnis und generell die neuen Möglichkeiten im Kontext KI-Suche für dein Unternehmen mit mir besprechen?
           </h3>
           <p class="text-blue-100 text-sm">Dann klick den Button – ich melde mich persönlich bei dir.</p>
         </div>
-        <div class="md:flex-shrink-0 flex flex-col items-start md:items-end gap-2">
+        <div class="md:flex-shrink-0 flex flex-col items-stretch md:items-end gap-2 min-w-0">
           <a id="contact-cta"
              href="mailto:tik@tim-kloetzing.de?subject=GEO-Anfrage%20%C3%BCber%20GEO-Analyzer"
-             class="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-semibold px-6 py-3.5 rounded-lg shadow-md transition whitespace-nowrap">
-            <span>✉️</span>
+             class="inline-flex items-center justify-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-semibold px-5 py-3 sm:px-6 sm:py-3.5 rounded-lg shadow-md transition text-sm sm:text-base text-center">
+            <span class="flex-shrink-0">✉️</span>
             <span>E-Mail zum Austausch mit Tim Klötzing</span>
           </a>
-          <p class="text-blue-100 text-xs">
+          <p class="text-blue-100 text-xs text-center md:text-right">
             Oder direkt öffnen in:
             <a id="cta-outlook" href="#" target="_blank" rel="noopener" class="underline hover:text-white font-medium">Outlook</a>
             ·
@@ -131,7 +165,6 @@
     </div>
   </section>
 
-  <!-- Erklär-Spalten -->
   <section class="max-w-5xl mx-auto px-5 mt-16 grid md:grid-cols-3 gap-8">
     <div>
       <div class="text-blue-600 text-2xl mb-2">🛡️</div>
@@ -178,7 +211,6 @@
     </div>
   </section>
 
-  <!-- Bekannte Bots -->
   <section class="max-w-5xl mx-auto px-5 mt-16">
     <h2 class="text-center text-2xl font-bold text-slate-900 mb-8">Bekannte KI-Bot User-Agents</h2>
     <div class="grid md:grid-cols-3 gap-6">
@@ -207,7 +239,6 @@
     </div>
   </section>
 
-  <!-- Technische Hinweise -->
   <section class="max-w-5xl mx-auto px-5 mt-12">
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-6">
       <h3 class="font-semibold text-slate-900 mb-4">📌 Technische Hinweise</h3>
@@ -235,7 +266,6 @@
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="bg-slate-900 text-slate-300 mt-16">
     <div class="max-w-5xl mx-auto px-5 py-12">
       <div class="text-center pb-8 border-b border-slate-700">
@@ -250,20 +280,17 @@
   </footer>
 
   <script>
-    // Branding aus dem BRAND-Objekt einsetzen
     document.getElementById("brand-name").textContent = BRAND.name;
     document.getElementById("brand-tagline").textContent = BRAND.tagline;
     document.getElementById("footer-name").textContent = BRAND.name;
     document.getElementById("footer-year").textContent = BRAND.year;
     document.getElementById("footer-text").textContent = BRAND.footerText;
-    for (const id of ["cta-top", "cta-footer"]) {
-      const el = document.getElementById(id);
-      el.textContent = BRAND.ctaText;
-      el.href = BRAND.ctaUrl;
-    }
+    document.getElementById("cta-footer").textContent = BRAND.ctaText;
+    document.getElementById("cta-footer").href = BRAND.ctaUrl;
+    document.getElementById("cta-top").href = BRAND.ctaUrl;
+    document.getElementById("cta-top-long").textContent = BRAND.ctaText;
     document.getElementById("footer-privacy").href = BRAND.privacyUrl;
 
-    // Status-Darstellung
     const STATUS = {
       allowed:  { label: "Erlaubt",   cls: "bg-green-100 text-green-700" },
       blocked:  { label: "Blockiert", cls: "bg-red-100 text-red-700" },
@@ -299,21 +326,21 @@
       const st = STATUS[r.status] || STATUS.error;
       const meta = r.robotsMeta
         ? `<span class="text-green-600">${esc(r.robotsMeta)}</span>`
-        : `<span class="text-slate-400">kein Meta-Tag (Standard: index, follow)</span>`;
+        : `<span class="text-slate-400">kein Meta-Tag (Standard)</span>`;
       const robots = r.robotsTxt
         ? `<span class="text-green-500">✓</span>`
         : `<span class="text-red-500">✕</span>`;
       return `
         <tr class="border-b border-slate-50">
-          <td class="py-3 pr-3">
+          <td class="bot-name py-3 pr-3">
             <div class="font-semibold text-slate-900">${esc(r.name)}</div>
             <div class="text-xs text-slate-400">${esc(r.vendor)}</div>
           </td>
-          <td class="py-3 px-3"><span class="inline-block text-xs font-medium px-2 py-0.5 rounded ${st.cls}">${st.label}</span></td>
-          <td class="py-3 px-3 text-slate-600">${r.http ?? "—"}</td>
-          <td class="py-3 px-3">${robots}</td>
-          <td class="py-3 px-3 text-xs max-w-[220px]">${meta}</td>
-          <td class="py-3 pl-3 text-right text-slate-600">${r.responseTime ?? "—"}</td>
+          <td data-label="Status" class="py-3 px-3"><span class="inline-block text-xs font-medium px-2 py-0.5 rounded ${st.cls}">${st.label}</span></td>
+          <td data-label="HTTP" class="py-3 px-3 text-slate-600">${r.http ?? "—"}</td>
+          <td data-label="robots.txt" class="py-3 px-3">${robots}</td>
+          <td data-label="Meta-Robots" class="py-3 px-3 text-xs max-w-[220px] text-right md:text-left">${meta}</td>
+          <td data-label="Antwortzeit" class="py-3 pl-3 text-right text-slate-600">${r.responseTime ?? "—"}</td>
         </tr>`;
     }
 
@@ -330,8 +357,6 @@
         resultsBody.innerHTML = data.results.map(renderRow).join("");
         document.getElementById("tested-url").textContent = "Getestete Adresse: " + data.url;
 
-        // Getestete Adresse + Kurz-Zusammenfassung in den mailto-Link einbetten,
-        // damit Tim direkt im Posteingang sieht, worum es geht.
         const counts = data.results.reduce((a, r) => (a[r.status] = (a[r.status] || 0) + 1, a), {});
         const summary = `Erlaubt: ${counts.allowed || 0} · Blockiert: ${counts.blocked || 0} · Fehler: ${counts.error || 0}`;
         const body =
@@ -344,16 +369,11 @@
         const to = "tik@tim-kloetzing.de";
         const enc = encodeURIComponent;
 
-        // Standard-Button: nutzt das im Betriebssystem hinterlegte Mailprogramm
         document.getElementById("contact-cta").href =
           "mailto:" + to + "?subject=" + enc(subject) + "&body=" + enc(body);
-
-        // Direkt im Browser-Outlook (Microsoft 365) öffnen
         document.getElementById("cta-outlook").href =
           "https://outlook.office.com/mail/deeplink/compose?to=" + enc(to) +
           "&subject=" + enc(subject) + "&body=" + enc(body);
-
-        // Direkt im Gmail-Web öffnen
         document.getElementById("cta-gmail").href =
           "https://mail.google.com/mail/?view=cm&fs=1&to=" + enc(to) +
           "&su=" + enc(subject) + "&body=" + enc(body);
@@ -381,7 +401,6 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
-    // Höhe an die Eltern-Seite (WordPress-iframe) melden, damit es sich automatisch anpasst.
     function postHeight() {
       const h = document.documentElement.scrollHeight;
       try { parent.postMessage({ type: "kiBotAnalyzerHeight", height: h }, "*"); } catch (e) {}
