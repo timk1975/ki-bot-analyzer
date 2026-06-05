@@ -12,7 +12,7 @@
   <script>
     const BRAND = {
       name: "Tim Klötzing",
-      tagline: "KI · Online-Marketing · Sichtbarkeit",
+      tagline: "KI- und Marketingberatung",
       ctaText: "Kostenloses Erstgespräch",
       ctaUrl: "https://www.tim-kloetzing.de/kontakt/",                 // z. B. "https://tim-kloetzing.de/kontakt"
       footerText: "Hilfe bei deiner KI- & Marketingstrategie? Ich unterstütze dich bei Sichtbarkeit in KI-Suchen.",
@@ -34,43 +34,83 @@
     details > summary::-webkit-details-marker { display: none; }
     details[open] .chevron { transform: rotate(180deg); }
     .chevron { transition: transform .2s ease; }
+
+    /* Bot-Tabelle: auf Mobile als Karten, ab 768px als echte Tabelle */
+    @media (max-width: 767px) {
+      .bot-table thead { display: none; }
+      .bot-table, .bot-table tbody, .bot-table tr, .bot-table td { display: block; width: 100%; }
+      .bot-table tr {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.75rem 0.875rem;
+        margin-bottom: 0.625rem;
+        background: #fff;
+      }
+      .bot-table td {
+        padding: 0.25rem 0;
+        text-align: left !important;
+        max-width: none !important;
+        border: 0;
+      }
+      .bot-table td[data-label]:not(.bot-name) {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.3rem 0;
+        border-top: 1px dashed #f1f5f9;
+      }
+      .bot-table td[data-label]:not(.bot-name)::before {
+        content: attr(data-label);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #94a3b8;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .bot-table td.bot-name { padding-bottom: 0.5rem; }
+    }
   </style>
 </head>
 
 <body class="bg-white text-slate-800">
 
   <header class="border-b border-slate-100">
-    <div class="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-blue-600 text-xl">⚡</span>
-        <div>
-          <div id="brand-name" class="font-bold text-slate-900 leading-tight"></div>
-          <div id="brand-tagline" class="text-[11px] text-slate-400 leading-tight"></div>
+    <div class="max-w-5xl mx-auto px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="text-blue-600 text-xl flex-shrink-0">⚡</span>
+        <div class="min-w-0">
+          <div id="brand-name" class="font-bold text-slate-900 leading-tight text-sm sm:text-base truncate"></div>
+          <div id="brand-tagline" class="text-[10px] sm:text-[11px] text-slate-400 leading-tight truncate"></div>
         </div>
       </div>
-      <a id="cta-top" href="#" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition"></a>
+      <a id="cta-top" href="#" class="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium px-3 sm:px-4 py-2 rounded-lg transition whitespace-nowrap flex-shrink-0">
+        <span class="hidden sm:inline" id="cta-top-long"></span>
+        <span class="sm:hidden">Termin</span>
+      </a>
     </div>
   </header>
 
   <section class="bg-slate-50 border-b border-slate-100">
-    <div class="max-w-3xl mx-auto px-5 py-14 text-center">
+    <div class="max-w-3xl mx-auto px-5 py-10 sm:py-14 text-center">
       <span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold tracking-wide uppercase px-3 py-1 rounded-full mb-3">Analyzer + GEO-Check</span>
-      <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Wie gut ist deine Website auf KI-Suchen vorbereitet?</h1>
-      <p class="mt-4 text-slate-500 leading-relaxed">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Wie gut ist deine Website auf KI-Suchen vorbereitet?</h1>
+      <p class="mt-4 text-slate-500 leading-relaxed text-sm sm:text-base">
         In einem Durchlauf: Prüfung, ob KI-Bots (ChatGPT, Claude, Perplexity) deine Seite lesen dürfen – <strong>plus</strong> ein 11-Punkte-GEO-Check der wichtigsten Generative-Engine-Optimization-Merkmale.
       </p>
     </div>
   </section>
 
-  <section class="max-w-3xl mx-auto px-5 mt-10">
-    <div class="border border-slate-200 rounded-xl p-6 shadow-sm">
+  <section class="max-w-3xl mx-auto px-4 sm:px-5 mt-8 sm:mt-10">
+    <div class="border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
       <label for="url" class="block text-sm font-medium text-slate-700 mb-2">Website-Adresse</label>
-      <form id="form" class="flex gap-3">
+      <form id="form" class="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <input id="url" type="text" inputmode="url" autocomplete="off"
                placeholder="z. B. tim-kloetzing.de"
-               class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+               class="flex-1 min-w-0 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
         <button id="submit" type="submit"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition whitespace-nowrap flex items-center gap-2">
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition whitespace-nowrap flex items-center justify-center gap-2">
           <span id="submit-label">Analysieren</span>
           <span id="submit-spinner" class="hidden w-4 h-4 border-2 border-white/40 border-t-white rounded-full spin"></span>
         </button>
@@ -80,12 +120,12 @@
     </div>
   </section>
 
-  <section id="results" class="hidden max-w-4xl mx-auto px-5 mt-8">
+  <section id="results" class="hidden max-w-4xl mx-auto px-4 sm:px-5 mt-8">
 
-    <div class="border border-slate-200 rounded-xl p-6 shadow-sm">
+    <div class="border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
       <h2 class="font-semibold text-slate-900 mb-4">Bot-Zugriffs-Analyse</h2>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+      <div class="md:overflow-x-auto">
+        <table class="bot-table w-full text-sm">
           <thead>
             <tr class="text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100">
               <th class="text-left font-medium py-2 pr-3">KI-Bot</th>
@@ -99,60 +139,60 @@
           <tbody id="results-body"></tbody>
         </table>
       </div>
-      <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-        <span id="tested-url" class="text-xs text-slate-400"></span>
-        <button id="reset" class="text-sm border border-slate-300 hover:bg-slate-50 rounded-lg px-4 py-1.5 transition">Andere Adresse testen</button>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 pt-4 border-t border-slate-100">
+        <span id="tested-url" class="text-xs text-slate-400 break-all"></span>
+        <button id="reset" class="text-sm border border-slate-300 hover:bg-slate-50 rounded-lg px-4 py-1.5 transition whitespace-nowrap self-start sm:self-auto">Andere Adresse testen</button>
       </div>
     </div>
 
-    <div id="geo-section" class="mt-8 border border-slate-200 rounded-xl p-6 shadow-sm">
-      <div class="flex items-center justify-between flex-wrap gap-3 mb-1">
-        <div>
+    <div id="geo-section" class="mt-6 sm:mt-8 border border-slate-200 rounded-xl p-5 sm:p-6 shadow-sm">
+      <div class="flex items-start justify-between gap-3 mb-1">
+        <div class="min-w-0 flex-1">
           <h2 class="font-semibold text-slate-900">GEO-Check</h2>
-          <p class="text-xs text-slate-500">Generative Engine Optimization – wie gut sind deine Inhalte für KI-Antworten optimiert?</p>
+          <p class="text-xs text-slate-500 mt-0.5">Generative Engine Optimization – wie gut sind deine Inhalte für KI-Antworten optimiert?</p>
         </div>
-        <div id="score-badge" class="text-right">
-          <div class="text-xs uppercase tracking-wide text-slate-400">Gesamt-Score</div>
-          <div class="text-2xl font-bold"><span id="score-earned">–</span><span class="text-slate-400 text-base"> / <span id="score-max">11</span></span></div>
+        <div id="score-badge" class="text-right flex-shrink-0">
+          <div class="text-[10px] sm:text-xs uppercase tracking-wide text-slate-400">Score</div>
+          <div class="text-xl sm:text-2xl font-bold leading-tight"><span id="score-earned">–</span><span class="text-slate-400 text-sm sm:text-base"> / <span id="score-max">11</span></span></div>
         </div>
       </div>
       <div id="geo-checks" class="mt-4 space-y-2"></div>
     </div>
 
-    <div class="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-5">
+    <div class="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 sm:p-5">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="flex gap-3">
-          <div class="text-2xl">🔒</div>
-          <div>
+          <div class="text-2xl flex-shrink-0">🔒</div>
+          <div class="min-w-0">
             <div class="font-semibold text-slate-900">Ergebnis wird nicht gespeichert</div>
             <p class="text-sm text-slate-600 mt-1">Sobald du diese Seite verlässt, ist die Analyse weg. Du kannst sie hier als PDF auf deinem Gerät speichern – ohne dass irgendwo Daten von dir erfasst werden.</p>
           </div>
         </div>
-        <button id="pdf-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-medium px-5 py-3 rounded-lg shadow-md transition whitespace-nowrap flex items-center gap-2">
+        <button id="pdf-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-medium px-5 py-3 rounded-lg shadow-md transition flex items-center justify-center gap-2 w-full md:w-auto flex-shrink-0">
           <span>📄</span><span id="pdf-btn-label">Als PDF speichern</span>
           <span id="pdf-spinner" class="hidden w-4 h-4 border-2 border-white/40 border-t-white rounded-full spin"></span>
         </button>
       </div>
     </div>
 
-    <div class="mt-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-7 md:p-9 shadow-lg">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div class="md:flex-1">
+    <div class="mt-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-5 sm:p-7 md:p-9 shadow-lg">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 md:gap-6">
+        <div class="md:flex-1 min-w-0">
           <div class="flex items-center gap-2 text-blue-100 text-xs font-semibold tracking-wide uppercase mb-2">
             <span>💬</span><span>Nächster Schritt</span>
           </div>
-          <h3 class="text-xl md:text-2xl font-bold leading-snug mb-2">
+          <h3 class="text-lg sm:text-xl md:text-2xl font-bold leading-snug mb-2">
             Möchtest du das Ergebnis und generell die neuen Möglichkeiten im Kontext KI-Suche für dein Unternehmen mit mir besprechen?
           </h3>
           <p class="text-blue-100 text-sm">Dann klick den Button – ich melde mich persönlich bei dir.</p>
         </div>
-        <div class="md:flex-shrink-0 flex flex-col items-start md:items-end gap-2">
+        <div class="md:flex-shrink-0 flex flex-col items-stretch md:items-end gap-2 min-w-0">
           <a id="contact-cta"
              href="mailto:tik@tim-kloetzing.de?subject=GEO-Anfrage%20%C3%BCber%20GEO-Analyzer"
-             class="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-semibold px-6 py-3.5 rounded-lg shadow-md transition whitespace-nowrap">
-            <span>✉️</span><span>E-Mail zum Austausch mit Tim Klötzing</span>
+             class="inline-flex items-center justify-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-semibold px-5 py-3 sm:px-6 sm:py-3.5 rounded-lg shadow-md transition text-sm sm:text-base text-center">
+            <span class="flex-shrink-0">✉️</span><span>E-Mail zum Austausch mit Tim Klötzing</span>
           </a>
-          <p class="text-blue-100 text-xs">
+          <p class="text-blue-100 text-xs text-center md:text-right">
             Oder direkt öffnen in:
             <a id="cta-outlook" href="#" target="_blank" rel="noopener" class="underline hover:text-white font-medium">Outlook</a>
             ·
@@ -325,10 +365,10 @@
     document.getElementById("footer-name").textContent = BRAND.name;
     document.getElementById("footer-year").textContent = BRAND.year;
     document.getElementById("footer-text").textContent = BRAND.footerText;
-    for (const id of ["cta-top", "cta-footer"]) {
-      const el = document.getElementById(id);
-      el.textContent = BRAND.ctaText; el.href = BRAND.ctaUrl;
-    }
+    document.getElementById("cta-footer").textContent = BRAND.ctaText;
+    document.getElementById("cta-footer").href = BRAND.ctaUrl;
+    document.getElementById("cta-top").href = BRAND.ctaUrl;
+    document.getElementById("cta-top-long").textContent = BRAND.ctaText;
     document.getElementById("footer-privacy").href = BRAND.privacyUrl;
 
     const STATUS = {
@@ -352,15 +392,15 @@
       const robots = r.robotsTxt ? `<span class="text-green-500">✓</span>` : `<span class="text-red-500">✕</span>`;
       return `
         <tr class="border-b border-slate-50">
-          <td class="py-3 pr-3">
+          <td class="bot-name py-3 pr-3">
             <div class="font-semibold text-slate-900">${esc(r.name)}</div>
             <div class="text-xs text-slate-400">${esc(r.vendor)}</div>
           </td>
-          <td class="py-3 px-3"><span class="inline-block text-xs font-medium px-2 py-0.5 rounded ${st.cls}">${st.label}</span></td>
-          <td class="py-3 px-3 text-slate-600">${r.http ?? "—"}</td>
-          <td class="py-3 px-3">${robots}</td>
-          <td class="py-3 px-3 text-xs max-w-[220px]">${meta}</td>
-          <td class="py-3 pl-3 text-right text-slate-600">${r.responseTime ?? "—"}</td>
+          <td data-label="Status" class="py-3 px-3"><span class="inline-block text-xs font-medium px-2 py-0.5 rounded ${st.cls}">${st.label}</span></td>
+          <td data-label="HTTP" class="py-3 px-3 text-slate-600">${r.http ?? "—"}</td>
+          <td data-label="robots.txt" class="py-3 px-3">${robots}</td>
+          <td data-label="Meta-Robots" class="py-3 px-3 text-xs max-w-[220px] text-right md:text-left">${meta}</td>
+          <td data-label="Antwortzeit" class="py-3 pl-3 text-right text-slate-600">${r.responseTime ?? "—"}</td>
         </tr>`;
     }
 
@@ -368,20 +408,20 @@
       const st = GEO_STATUS[c.status] || GEO_STATUS.info;
       return `
         <details class="border ${st.cls} rounded-lg overflow-hidden">
-          <summary class="flex items-center justify-between gap-3 px-4 py-3">
-            <div class="flex items-center gap-3 min-w-0">
-              <span class="text-lg leading-none">${st.icon}</span>
-              <div class="min-w-0">
+          <summary class="flex items-start gap-3 px-3 sm:px-4 py-3">
+            <span class="text-lg leading-none mt-0.5 flex-shrink-0">${st.icon}</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start justify-between gap-2 flex-wrap">
                 <div class="font-semibold text-slate-900 text-sm">${esc(c.label)}</div>
-                <div class="text-xs text-slate-600 truncate">${esc(c.value)}</div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <span class="inline-block text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded ${st.badge} whitespace-nowrap">${st.label}</span>
+                  <span class="chevron text-slate-400 text-xs">▼</span>
+                </div>
               </div>
-            </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <span class="inline-block text-xs font-medium px-2 py-0.5 rounded ${st.badge}">${st.label}</span>
-              <span class="chevron text-slate-400 text-xs">▼</span>
+              <div class="text-xs text-slate-600 mt-0.5 break-words">${esc(c.value)}</div>
             </div>
           </summary>
-          <div class="px-4 pb-4 text-sm text-slate-600 leading-relaxed border-t border-white/60 pt-3">
+          <div class="px-3 sm:px-4 pb-4 text-sm text-slate-600 leading-relaxed border-t border-white/60 pt-3">
             <div class="font-medium text-slate-700 mb-1">💡 Empfehlung</div>
             ${esc(c.recommendation)}
           </div>
