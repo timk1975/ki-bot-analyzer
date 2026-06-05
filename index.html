@@ -113,13 +113,19 @@
           </h3>
           <p class="text-blue-100 text-sm">Dann klick den Button – ich melde mich persönlich bei dir.</p>
         </div>
-        <div class="md:flex-shrink-0">
+        <div class="md:flex-shrink-0 flex flex-col items-start md:items-end gap-2">
           <a id="contact-cta"
              href="mailto:tik@tim-kloetzing.de?subject=GEO-Anfrage%20%C3%BCber%20GEO-Analyzer"
              class="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-semibold px-6 py-3.5 rounded-lg shadow-md transition whitespace-nowrap">
             <span>✉️</span>
             <span>E-Mail zum Austausch mit Tim Klötzing</span>
           </a>
+          <p class="text-blue-100 text-xs">
+            Oder direkt öffnen in:
+            <a id="cta-outlook" href="#" target="_blank" rel="noopener" class="underline hover:text-white font-medium">Outlook</a>
+            ·
+            <a id="cta-gmail" href="#" target="_blank" rel="noopener" class="underline hover:text-white font-medium">Gmail</a>
+          </p>
         </div>
       </div>
     </div>
@@ -334,10 +340,23 @@
           "Getestete Adresse: " + data.url + "\n" +
           "Zusammenfassung: " + summary + "\n\n" +
           "Viele Grüße";
+        const subject = "GEO-Anfrage über GEO-Analyzer";
+        const to = "tik@tim-kloetzing.de";
+        const enc = encodeURIComponent;
+
+        // Standard-Button: nutzt das im Betriebssystem hinterlegte Mailprogramm
         document.getElementById("contact-cta").href =
-          "mailto:tik@tim-kloetzing.de" +
-          "?subject=" + encodeURIComponent("GEO-Anfrage über GEO-Analyzer") +
-          "&body=" + encodeURIComponent(body);
+          "mailto:" + to + "?subject=" + enc(subject) + "&body=" + enc(body);
+
+        // Direkt im Browser-Outlook (Microsoft 365) öffnen
+        document.getElementById("cta-outlook").href =
+          "https://outlook.office.com/mail/deeplink/compose?to=" + enc(to) +
+          "&subject=" + enc(subject) + "&body=" + enc(body);
+
+        // Direkt im Gmail-Web öffnen
+        document.getElementById("cta-gmail").href =
+          "https://mail.google.com/mail/?view=cm&fs=1&to=" + enc(to) +
+          "&su=" + enc(subject) + "&body=" + enc(body);
 
         resultsSection.classList.remove("hidden");
         resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
