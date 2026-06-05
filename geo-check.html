@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KI-Bot Analyzer + GEO-Check</title>
+  <meta name="description" content="Prüfe kostenlos, ob KI-Bots deine Website lesen dürfen und wie gut sie für KI-Suchen optimiert ist (GEO – Generative Engine Optimization)." />
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       HIER ANPASSEN: Dein Branding (Name, Untertitel, Button-Link)
+  ════════════════════════════════════════════════════════════════════ -->
+  <script>
+    const BRAND = {
+      name: "Tim Klötzing",
+      tagline: "KI · Online-Marketing · Sichtbarkeit",
+      ctaText: "Kostenloses Erstgespräch",
+      ctaUrl: "#",
+      footerText: "Hilfe bei deiner KI-Strategie? Ich unterstütze dich bei Sichtbarkeit in KI-Suchen.",
+      privacyUrl: "#",
+      contactEmail: "tik@tim-kloetzing.de",
+      website: "tim-kloetzing.de",
+      year: new Date().getFullYear()
+    };
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jsPDF: clientseitige Text-PDF-Erstellung, kein Server, kein Datenversand -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin .8s linear infinite; }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    details[open] .chevron { transform: rotate(180deg); }
+    .chevron { transition: transform .2s ease; }
+  </style>
+</head>
+
+<body class="bg-white text-slate-800">
+
+  <header class="border-b border-slate-100">
+    <div class="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-blue-600 text-xl">⚡</span>
+        <div>
+          <div id="brand-name" class="font-bold text-slate-900 leading-tight"></div>
+          <div id="brand-tagline" class="text-[11px] text-slate-400 leading-tight"></div>
+        </div>
+      </div>
+      <a id="cta-top" href="#" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition"></a>
+    </div>
+  </header>
+
+  <section class="bg-slate-50 border-b border-slate-100">
+    <div class="max-w-3xl mx-auto px-5 py-14 text-center">
+      <span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold tracking-wide uppercase px-3 py-1 rounded-full mb-3">Analyzer + GEO-Check</span>
+      <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Wie gut ist deine Website auf KI-Suchen vorbereitet?</h1>
+      <p class="mt-4 text-slate-500 leading-relaxed">
+        In einem Durchlauf: Prüfung, ob KI-Bots (ChatGPT, Claude, Perplexity) deine Seite lesen dürfen – <strong>plus</strong> ein 11-Punkte-GEO-Check der wichtigsten Generative-Engine-Optimization-Merkmale.
+      </p>
+    </div>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-5 mt-10">
+    <div class="border border-slate-200 rounded-xl p-6 shadow-sm">
+      <label for="url" class="block text-sm font-medium text-slate-700 mb-2">Website-Adresse</label>
+      <form id="form" class="flex gap-3">
+        <input id="url" type="text" inputmode="url" autocomplete="off"
+               placeholder="z. B. tim-kloetzing.de"
+               class="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        <button id="submit" type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2.5 rounded-lg transition whitespace-nowrap flex items-center gap-2">
+          <span id="submit-label">Analysieren</span>
+          <span id="submit-spinner" class="hidden w-4 h-4 border-2 border-white/40 border-t-white rounded-full spin"></span>
+        </button>
+      </form>
+      <p class="text-xs text-slate-400 mt-2">Die Analyse dauert ca. 10–15 Sekunden – wir prüfen 7 Bots und 11+ GEO-Merkmale.</p>
+      <p id="error" class="hidden mt-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+    </div>
+  </section>
+
+  <section id="results" class="hidden max-w-4xl mx-auto px-5 mt-8">
+
+    <div class="border border-slate-200 rounded-xl p-6 shadow-sm">
+      <h2 class="font-semibold text-slate-900 mb-4">Bot-Zugriffs-Analyse</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-[11px] uppercase tracking-wide text-slate-400 border-b border-slate-100">
+              <th class="text-left font-medium py-2 pr-3">KI-Bot</th>
+              <th class="text-left font-medium py-2 px-3">Status</th>
+              <th class="text-left font-medium py-2 px-3">HTTP</th>
+              <th class="text-left font-medium py-2 px-3">robots.txt</th>
+              <th class="text-left font-medium py-2 px-3">Meta-Robots</th>
+              <th class="text-right font-medium py-2 pl-3">Antwortzeit</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+      <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+        <span id="tested-url" class="text-xs text-slate-400"></span>
+        <button id="reset" class="text-sm border border-slate-300 hover:bg-slate-50 rounded-lg px-4 py-1.5 transition">Andere Adresse testen</button>
+      </div>
+    </div>
+
+    <div id="geo-section" class="mt-8 border border-slate-200 rounded-xl p-6 shadow-sm">
+      <div class="flex items-center justify-between flex-wrap gap-3 mb-1">
+        <div>
+          <h2 class="font-semibold text-slate-900">GEO-Check</h2>
+          <p class="text-xs text-slate-500">Generative Engine Optimization – wie gut sind deine Inhalte für KI-Antworten optimiert?</p>
+        </div>
+        <div id="score-badge" class="text-right">
+          <div class="text-xs uppercase tracking-wide text-slate-400">Gesamt-Score</div>
+          <div class="text-2xl font-bold"><span id="score-earned">–</span><span class="text-slate-400 text-base"> / <span id="score-max">11</span></span></div>
+        </div>
+      </div>
+      <div id="geo-checks" class="mt-4 space-y-2"></div>
+    </div>
+
+    <div class="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex gap-3">
+          <div class="text-2xl">🔒</div>
+          <div>
+            <div class="font-semibold text-slate-900">Ergebnis wird nicht gespeichert</div>
+            <p class="text-sm text-slate-600 mt-1">Sobald du diese Seite verlässt, ist die Analyse weg. Du kannst sie hier als PDF auf deinem Gerät speichern – ohne dass irgendwo Daten von dir erfasst werden.</p>
+          </div>
+        </div>
+        <button id="pdf-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-medium px-5 py-3 rounded-lg shadow-md transition whitespace-nowrap flex items-center gap-2">
+          <span>📄</span><span id="pdf-btn-label">Als PDF speichern</span>
+          <span id="pdf-spinner" class="hidden w-4 h-4 border-2 border-white/40 border-t-white rounded-full spin"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-7 md:p-9 shadow-lg">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="md:flex-1">
+          <div class="flex items-center gap-2 text-blue-100 text-xs font-semibold tracking-wide uppercase mb-2">
+            <span>💬</span><span>Nächster Schritt</span>
+          </div>
+          <h3 class="text-xl md:text-2xl font-bold leading-snug mb-2">
+            Möchtest du das Ergebnis und generell die neuen Möglichkeiten im Kontext KI-Suche für dein Unternehmen mit mir besprechen?
+          </h3>
+          <p class="text-blue-100 text-sm">Dann klick den Button – ich melde mich persönlich bei dir.</p>
+        </div>
+        <div class="md:flex-shrink-0 flex flex-col items-start md:items-end gap-2">
+          <a id="contact-cta"
+             href="mailto:tik@tim-kloetzing.de?subject=GEO-Anfrage%20%C3%BCber%20GEO-Analyzer"
+             class="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-semibold px-6 py-3.5 rounded-lg shadow-md transition whitespace-nowrap">
+            <span>✉️</span><span>E-Mail zum Austausch mit Tim Klötzing</span>
+          </a>
+          <p class="text-blue-100 text-xs">
+            Oder direkt öffnen in:
+            <a id="cta-outlook" href="#" target="_blank" rel="noopener" class="underline hover:text-white font-medium">Outlook</a>
+            ·
+            <a id="cta-gmail" href="#" target="_blank" rel="noopener" class="underline hover:text-white font-medium">Gmail</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-5xl mx-auto px-5 mt-16 grid md:grid-cols-3 gap-8">
+    <div>
+      <div class="text-blue-600 text-2xl mb-2">🛡️</div>
+      <h3 class="font-semibold text-slate-900 mb-2">Die Realität des KI-Zugriffs</h3>
+      <p class="text-sm text-slate-500 leading-relaxed mb-3">
+        Deine robots.txt erlaubt vielleicht den Zugriff – aber CDNs, Firewalls und Sicherheitssysteme erzählen oft eine andere Geschichte. Häufig werden KI-Bots ungewollt geblockt und du verschenkst Sichtbarkeit.
+      </p>
+      <ul class="text-sm text-slate-500 space-y-1">
+        <li class="flex gap-2"><span class="text-green-500">✓</span> CDN-Sperren</li>
+        <li class="flex gap-2"><span class="text-green-500">✓</span> Firewall-Regeln</li>
+        <li class="flex gap-2"><span class="text-green-500">✓</span> Rate-Limiting</li>
+        <li class="flex gap-2"><span class="text-green-500">✓</span> Geografische Sperren</li>
+      </ul>
+    </div>
+    <div>
+      <div class="text-blue-600 text-2xl mb-2">🤖</div>
+      <h3 class="font-semibold text-slate-900 mb-2">Was wir testen</h3>
+      <p class="text-sm text-slate-500 leading-relaxed mb-3">
+        Das Tool sendet echte Anfragen mit den tatsächlichen User-Agents, die KI-Suche und -Antworten antreiben – plus eine inhaltliche Prüfung der wichtigsten GEO-Merkmale.
+      </p>
+      <p class="text-sm text-slate-600 font-medium">OpenAI-Bots:</p>
+      <p class="text-sm text-slate-500 mb-2">GPTBot, ChatGPT-User, OAI-SearchBot</p>
+      <p class="text-sm text-slate-600 font-medium">Anthropic-Bots:</p>
+      <p class="text-sm text-slate-500 mb-2">ClaudeBot, Claude-User</p>
+      <p class="text-sm text-slate-600 font-medium">Perplexity-Bots:</p>
+      <p class="text-sm text-slate-500">PerplexityBot, Perplexity-User</p>
+    </div>
+    <div>
+      <div class="text-blue-600 text-2xl mb-2">📈</div>
+      <h3 class="font-semibold text-slate-900 mb-2">Ergebnisse richtig deuten</h3>
+      <p class="text-sm text-slate-500 leading-relaxed mb-3">
+        Zu verstehen, wie KI-Bots deine Seite sehen, ist entscheidend für moderne SEO und KI-Sichtbarkeit.
+      </p>
+      <div class="space-y-2 text-sm">
+        <div><span class="inline-block bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded">Erlaubt</span><span class="text-slate-500"> – Bot darf crawlen und deine Inhalte zitieren.</span></div>
+        <div><span class="inline-block bg-red-100 text-red-700 text-xs font-medium px-2 py-0.5 rounded">Blockiert</span><span class="text-slate-500"> – Kein Zugriff. Du verschenkst KI-Sichtbarkeit.</span></div>
+        <div><span class="inline-block bg-amber-100 text-amber-700 text-xs font-medium px-2 py-0.5 rounded">Fehler</span><span class="text-slate-500"> – Verbindung gescheitert. Deutet oft auf bot-spezifische Sperren hin.</span></div>
+      </div>
+      <p class="text-xs text-slate-400 mt-3">Tipp: KI-Bots respektieren robots.txt, können aber anderswo geblockt werden. Prüfe immer Richtlinien <em>und</em> tatsächlichen Zugriff.</p>
+    </div>
+  </section>
+
+  <section class="max-w-5xl mx-auto px-5 mt-16">
+    <div class="text-center mb-8">
+      <h2 class="text-2xl font-bold text-slate-900 mb-2">Was ist GEO – und warum jetzt wichtig?</h2>
+      <p class="text-slate-500 max-w-2xl mx-auto">
+        Generative Engine Optimization umfasst alle Maßnahmen, mit denen du dafür sorgst, dass KI-Suchen (ChatGPT, Claude, Perplexity, Google AI Overviews) deine Inhalte als vertrauenswürdige Quelle erkennen, korrekt zitieren und in Antworten einbauen.
+      </p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="border border-slate-200 rounded-xl p-5">
+        <div class="text-emerald-600 text-xl mb-2">📚</div>
+        <h3 class="font-semibold text-slate-900 mb-1">Lesbarkeit für KIs</h3>
+        <p class="text-sm text-slate-500">Title, Meta-Description, H1, semantisches HTML und Sprache – die Grundlage, damit KIs deine Seite überhaupt korrekt verstehen.</p>
+      </div>
+      <div class="border border-slate-200 rounded-xl p-5">
+        <div class="text-emerald-600 text-xl mb-2">🧱</div>
+        <h3 class="font-semibold text-slate-900 mb-1">Strukturierte Daten</h3>
+        <p class="text-sm text-slate-500">Schema.org-Markierungen, Open Graph, Canonical, Autor und Datum – Signale, die KIs zur Einordnung und Verifikation deiner Inhalte brauchen.</p>
+      </div>
+      <div class="border border-slate-200 rounded-xl p-5">
+        <div class="text-emerald-600 text-xl mb-2">🎯</div>
+        <h3 class="font-semibold text-slate-900 mb-1">Entity-Verankerung</h3>
+        <p class="text-sm text-slate-500">Eine Grounding-Seite und optional eine llms.txt verankern dich als „Quelle der Wahrheit" zu deinem Thema bzw. deinem Unternehmen.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-5xl mx-auto px-5 mt-16">
+    <h2 class="text-center text-2xl font-bold text-slate-900 mb-8">Bekannte KI-Bot User-Agents</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="border border-slate-200 rounded-xl overflow-hidden">
+        <div class="bg-blue-600 text-white font-semibold px-5 py-3">OpenAI-Bots</div>
+        <div class="p-5 space-y-4 text-sm">
+          <div><div class="font-semibold text-slate-900">GPTBot</div><div class="text-slate-500">Trainings-Crawler für OpenAI-Modelle. Sperre = Inhalte fließen nicht ins Modelltraining.</div></div>
+          <div><div class="font-semibold text-slate-900">ChatGPT-User</div><div class="text-slate-500">Aktiv beim Browsen in ChatGPT. Sperre = ChatGPT erreicht deine Inhalte live nicht.</div></div>
+          <div><div class="font-semibold text-slate-900">OAI-SearchBot</div><div class="text-slate-500">Such-Crawler von OpenAI. Sperre = Ausschluss aus OpenAI-Suchergebnissen.</div></div>
+        </div>
+      </div>
+      <div class="border border-slate-200 rounded-xl overflow-hidden">
+        <div class="bg-cyan-600 text-white font-semibold px-5 py-3">Anthropic-Bots</div>
+        <div class="p-5 space-y-4 text-sm">
+          <div><div class="font-semibold text-slate-900">ClaudeBot</div><div class="text-slate-500">Allgemeiner Crawler von Anthropic. Sperre = kein Zugriff für Claude-Systeme.</div></div>
+          <div><div class="font-semibold text-slate-900">Claude-User</div><div class="text-slate-500">Aktiv in Echtzeit-Claude-Sessions. Sperre = Claude kann deine Inhalte nicht abrufen.</div></div>
+        </div>
+      </div>
+      <div class="border border-slate-200 rounded-xl overflow-hidden">
+        <div class="bg-emerald-600 text-white font-semibold px-5 py-3">Perplexity-Bots</div>
+        <div class="p-5 space-y-4 text-sm">
+          <div><div class="font-semibold text-slate-900">PerplexityBot</div><div class="text-slate-500">Web-Crawler von Perplexity. Sperre = nicht in der Perplexity-Suche enthalten.</div></div>
+          <div><div class="font-semibold text-slate-900">Perplexity-User</div><div class="text-slate-500">Aktiv bei Echtzeit-Antworten. Sperre = keine Zitate in Live-Antworten.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-5xl mx-auto px-5 mt-16">
+    <h2 class="text-center text-2xl font-bold text-slate-900 mb-2">Diese 11 GEO-Merkmale prüfen wir</h2>
+    <p class="text-center text-slate-500 mb-8 max-w-2xl mx-auto">Pro Merkmal vergeben wir 1 Punkt (erfüllt), 0,5 (verbesserbar) oder 0 (fehlt). llms.txt ist ein optionaler Bonus-Hinweis.</p>
+    <div class="grid md:grid-cols-2 gap-3 text-sm">
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">1. Title-Tag</strong> <span class="text-slate-500">– das, was KIs als Zitations-Überschrift verwenden (30–65 Zeichen ideal).</span></div>
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">2. Meta-Description</strong> <span class="text-slate-500">– oft 1:1 als KI-Antwort-Snippet übernommen (50–160 Zeichen).</span></div>
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">3. H1-Überschrift</strong> <span class="text-slate-500">– genau eine H1 definiert das Hauptthema klar für KIs.</span></div>
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">4. Schema.org / JSON-LD</strong> <span class="text-slate-500">– strukturierte Daten sind das wichtigste GEO-Signal überhaupt.</span></div>
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">5. Open Graph</strong> <span class="text-slate-500">– og:title, og:description, og:image für saubere KI- und Social-Vorschauen.</span></div>
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">6. Canonical-URL</strong> <span class="text-slate-500">– verhindert, dass KIs verschiedene URL-Varianten als getrennte Quellen behandeln.</span></div>
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">7. Autor & Datum</strong> <span class="text-slate-500">– E-E-A-T-Signale: KIs trauen Inhalten mit Autor und Datum mehr.</span></div>
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">8. Semantisches HTML</strong> <span class="text-slate-500">– &lt;main&gt;, &lt;article&gt;, &lt;section&gt; helfen KIs, Hauptinhalt zu erkennen.</span></div>
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">9. Sprache deklariert</strong> <span class="text-slate-500">– &lt;html lang="de"&gt; ordnet dich der richtigen Sprachversion zu.</span></div>
+      <div class="border border-slate-200 rounded-lg p-4"><strong class="text-slate-900">10. Inhalts-Substanz</strong> <span class="text-slate-500">– Wortzahl plus Listen, Tabellen oder FAQPage-Schema erhöhen Zitations-Chancen.</span></div>
+      <div class="border border-slate-200 rounded-lg p-4 md:col-span-2"><strong class="text-slate-900">11. Grounding-Seite</strong> <span class="text-slate-500">– eine dedizierte Über-uns-/Über-mich-Seite mit Organization- oder Person-Schema verankert dich als Entity für KIs.</span></div>
+      <div class="border border-emerald-200 bg-emerald-50 rounded-lg p-4 md:col-span-2"><strong class="text-emerald-900">+ Bonus: llms.txt</strong> <span class="text-emerald-700">– eine kuratierte Markdown-Landkarte für LLMs (junger, optionaler Standard von 2024). Wer das hat, signalisiert klare KI-Vorausschau.</span></div>
+    </div>
+  </section>
+
+  <section class="max-w-5xl mx-auto px-5 mt-12">
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-6">
+      <h3 class="font-semibold text-slate-900 mb-4">📌 Technische Hinweise</h3>
+      <div class="grid md:grid-cols-2 gap-6 text-sm">
+        <div>
+          <p class="font-medium text-slate-700 mb-1">Häufige Sperr-Ursachen:</p>
+          <ul class="text-slate-500 space-y-1 list-disc list-inside">
+            <li><strong>403-Status trotz „Erlaubt":</strong> Sperre durch CDN/Firewall</li>
+            <li><strong>Verbindungsfehler:</strong> Sperre auf Server-Ebene</li>
+            <li><strong>Andere Antwort je Bot:</strong> User-Agent-basierte Auslieferung</li>
+          </ul>
+        </div>
+        <div>
+          <p class="font-medium text-slate-700 mb-1">Grenzen des GEO-Checks:</p>
+          <ul class="text-slate-500 space-y-1 list-disc list-inside">
+            <li>Wir prüfen nur die eingegebene URL (eine Seite)</li>
+            <li>JavaScript-gerenderter Inhalt ist nicht enthalten</li>
+            <li>Backlinks und Domain-Autorität werden nicht gemessen</li>
+            <li>Inhalts-Qualität selbst wird nicht inhaltlich bewertet</li>
+          </ul>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 mt-4 border-t border-slate-200 pt-3">
+        ℹ️ Hinweis: Die Tests basieren auf offizieller Dokumentation und beobachtetem Verhalten. Unternehmen veröffentlichen selten vollständige technische Spezifikationen ihrer Crawler.
+      </p>
+    </div>
+  </section>
+
+  <footer class="bg-slate-900 text-slate-300 mt-16">
+    <div class="max-w-5xl mx-auto px-5 py-12">
+      <div class="text-center pb-8 border-b border-slate-700">
+        <p id="footer-text" class="text-slate-400 mb-4"></p>
+        <a id="cta-footer" href="#" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg transition"></a>
+      </div>
+      <div class="flex flex-col md:flex-row justify-between items-center gap-3 pt-6 text-sm text-slate-500">
+        <span>© <span id="footer-year"></span> <span id="footer-name"></span>. Alle Rechte vorbehalten.</span>
+        <a id="footer-privacy" href="#" class="hover:text-slate-300">Datenschutz</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("brand-name").textContent = BRAND.name;
+    document.getElementById("brand-tagline").textContent = BRAND.tagline;
+    document.getElementById("footer-name").textContent = BRAND.name;
+    document.getElementById("footer-year").textContent = BRAND.year;
+    document.getElementById("footer-text").textContent = BRAND.footerText;
+    for (const id of ["cta-top", "cta-footer"]) {
+      const el = document.getElementById(id);
+      el.textContent = BRAND.ctaText; el.href = BRAND.ctaUrl;
+    }
+    document.getElementById("footer-privacy").href = BRAND.privacyUrl;
+
+    const STATUS = {
+      allowed: { label: "Erlaubt",   cls: "bg-green-100 text-green-700" },
+      blocked: { label: "Blockiert", cls: "bg-red-100 text-red-700" },
+      error:   { label: "Fehler",    cls: "bg-amber-100 text-amber-700" },
+    };
+    const GEO_STATUS = {
+      pass: { icon: "✅", cls: "border-green-200 bg-green-50", badge: "bg-green-100 text-green-700", label: "Erfüllt" },
+      warn: { icon: "⚠️", cls: "border-amber-200 bg-amber-50", badge: "bg-amber-100 text-amber-700", label: "Verbesserbar" },
+      fail: { icon: "❌", cls: "border-red-200 bg-red-50",     badge: "bg-red-100 text-red-700",     label: "Fehlt" },
+      info: { icon: "ℹ️", cls: "border-slate-200 bg-slate-50", badge: "bg-slate-100 text-slate-700", label: "Hinweis" },
+    };
+    function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
+
+    function renderBotRow(r) {
+      const st = STATUS[r.status] || STATUS.error;
+      const meta = r.robotsMeta
+        ? `<span class="text-green-600">${esc(r.robotsMeta)}</span>`
+        : `<span class="text-slate-400">kein Meta-Tag (Standard)</span>`;
+      const robots = r.robotsTxt ? `<span class="text-green-500">✓</span>` : `<span class="text-red-500">✕</span>`;
+      return `
+        <tr class="border-b border-slate-50">
+          <td class="py-3 pr-3">
+            <div class="font-semibold text-slate-900">${esc(r.name)}</div>
+            <div class="text-xs text-slate-400">${esc(r.vendor)}</div>
+          </td>
+          <td class="py-3 px-3"><span class="inline-block text-xs font-medium px-2 py-0.5 rounded ${st.cls}">${st.label}</span></td>
+          <td class="py-3 px-3 text-slate-600">${r.http ?? "—"}</td>
+          <td class="py-3 px-3">${robots}</td>
+          <td class="py-3 px-3 text-xs max-w-[220px]">${meta}</td>
+          <td class="py-3 pl-3 text-right text-slate-600">${r.responseTime ?? "—"}</td>
+        </tr>`;
+    }
+
+    function renderGeoCheck(c) {
+      const st = GEO_STATUS[c.status] || GEO_STATUS.info;
+      return `
+        <details class="border ${st.cls} rounded-lg overflow-hidden">
+          <summary class="flex items-center justify-between gap-3 px-4 py-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="text-lg leading-none">${st.icon}</span>
+              <div class="min-w-0">
+                <div class="font-semibold text-slate-900 text-sm">${esc(c.label)}</div>
+                <div class="text-xs text-slate-600 truncate">${esc(c.value)}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="inline-block text-xs font-medium px-2 py-0.5 rounded ${st.badge}">${st.label}</span>
+              <span class="chevron text-slate-400 text-xs">▼</span>
+            </div>
+          </summary>
+          <div class="px-4 pb-4 text-sm text-slate-600 leading-relaxed border-t border-white/60 pt-3">
+            <div class="font-medium text-slate-700 mb-1">💡 Empfehlung</div>
+            ${esc(c.recommendation)}
+          </div>
+        </details>`;
+    }
+
+    function setScoreBadge(score) {
+      document.getElementById("score-earned").textContent = score.earned;
+      document.getElementById("score-max").textContent = score.max;
+      const pct = score.earned / score.max;
+      const badge = document.getElementById("score-badge");
+      badge.classList.remove("text-green-700","text-amber-700","text-red-700");
+      if (pct >= 0.8) badge.classList.add("text-green-700");
+      else if (pct >= 0.5) badge.classList.add("text-amber-700");
+      else badge.classList.add("text-red-700");
+    }
+
+    const form = document.getElementById("form");
+    const urlInput = document.getElementById("url");
+    const errorBox = document.getElementById("error");
+    const resultsSection = document.getElementById("results");
+    const resultsBody = document.getElementById("results-body");
+    const submitBtn = document.getElementById("submit");
+    const submitLabel = document.getElementById("submit-label");
+    const submitSpinner = document.getElementById("submit-spinner");
+    const geoSection = document.getElementById("geo-section");
+    const geoChecks = document.getElementById("geo-checks");
+
+    function setLoading(on) {
+      submitBtn.disabled = on;
+      submitBtn.classList.toggle("opacity-70", on);
+      submitLabel.textContent = on ? "Analysiere…" : "Analysieren";
+      submitSpinner.classList.toggle("hidden", !on);
+    }
+    function showError(msg) { errorBox.textContent = msg; errorBox.classList.remove("hidden"); }
+
+    let lastResult = null;
+
+    async function analyze(url) {
+      errorBox.classList.add("hidden");
+      setLoading(true);
+      try {
+        const res = await fetch("/api/analyze-full?url=" + encodeURIComponent(url));
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          showError(data.error || "Die Analyse konnte nicht durchgeführt werden.");
+          return;
+        }
+        lastResult = data;
+
+        resultsBody.innerHTML = data.results.map(renderBotRow).join("");
+        document.getElementById("tested-url").textContent = "Getestete Adresse: " + data.url;
+
+        if (data.geo && data.geo.checks && data.geo.checks.length) {
+          setScoreBadge(data.geo.score);
+          const all = [...data.geo.checks, data.geo.grounding, data.geo.llmstxt];
+          geoChecks.innerHTML = all.map(renderGeoCheck).join("");
+          geoSection.classList.remove("hidden");
+        } else {
+          geoSection.classList.add("hidden");
+        }
+
+        const counts = data.results.reduce((a, r) => (a[r.status] = (a[r.status] || 0) + 1, a), {});
+        const summary = `Bots erlaubt: ${counts.allowed || 0} · blockiert: ${counts.blocked || 0} · Fehler: ${counts.error || 0}`;
+        const scoreText = data.geo && data.geo.score ? `GEO-Score: ${data.geo.score.earned} von ${data.geo.score.max}` : "";
+        const body =
+          "Hallo Tim,\n\n" +
+          "ich habe gerade meine Website mit dem GEO-Analyzer geprüft und würde die Ergebnisse gern mit dir besprechen.\n\n" +
+          "Getestete Adresse: " + data.url + "\n" +
+          summary + "\n" +
+          (scoreText ? scoreText + "\n" : "") +
+          "\nViele Grüße";
+        const subject = "GEO-Anfrage über GEO-Analyzer";
+        const to = BRAND.contactEmail;
+        const enc = encodeURIComponent;
+        document.getElementById("contact-cta").href =
+          "mailto:" + to + "?subject=" + enc(subject) + "&body=" + enc(body);
+        document.getElementById("cta-outlook").href =
+          "https://outlook.office.com/mail/deeplink/compose?to=" + enc(to) +
+          "&subject=" + enc(subject) + "&body=" + enc(body);
+        document.getElementById("cta-gmail").href =
+          "https://mail.google.com/mail/?view=cm&fs=1&to=" + enc(to) +
+          "&su=" + enc(subject) + "&body=" + enc(body);
+
+        resultsSection.classList.remove("hidden");
+        resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch (e) {
+        showError("Verbindungsfehler. Bitte versuche es gleich noch einmal.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      if (!url) { showError("Bitte gib eine Website-Adresse ein."); return; }
+      analyze(url);
+    });
+    document.getElementById("reset").addEventListener("click", () => {
+      resultsSection.classList.add("hidden");
+      urlInput.value = ""; urlInput.focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    const pdfBtn = document.getElementById("pdf-btn");
+    const pdfLabel = document.getElementById("pdf-btn-label");
+    const pdfSpinner = document.getElementById("pdf-spinner");
+
+    pdfBtn.addEventListener("click", async () => {
+      if (!lastResult) return;
+      pdfBtn.disabled = true;
+      pdfLabel.textContent = "Erzeuge PDF…";
+      pdfSpinner.classList.remove("hidden");
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+
+        const PAGE_W = 210, PAGE_H = 297;
+        const M = 18;
+        const CW = PAGE_W - 2 * M;
+        let y = M;
+
+        const C = {
+          ink:    [15, 23, 42],
+          text:   [30, 41, 59],
+          muted:  [100, 116, 139],
+          subtle: [148, 163, 184],
+          line:   [226, 232, 240],
+          line2:  [241, 245, 249],
+          green:  [21, 128, 61],
+          amber:  [180, 83, 9],
+          red:    [185, 28, 28],
+          blue:   [37, 99, 235],
+        };
+
+        const ensure = (need) => {
+          if (y + need > PAGE_H - M - 8) { doc.addPage(); y = M; }
+        };
+
+        const para = (str, opts = {}) => {
+          const { size = 10, style = "normal", color = C.text, x = M, maxWidth = CW, after = 0, lineGap = 1.35 } = opts;
+          doc.setFontSize(size);
+          doc.setFont("helvetica", style);
+          doc.setTextColor(...color);
+          const lines = doc.splitTextToSize(String(str ?? ""), maxWidth);
+          const lh = size * 0.3528 * lineGap;
+          ensure(lh * lines.length + after);
+          doc.text(lines, x, y);
+          y += lh * lines.length + after;
+        };
+
+        const hr = (offsetBefore = 1, offsetAfter = 3) => {
+          y += offsetBefore;
+          doc.setDrawColor(...C.line);
+          doc.setLineWidth(0.2);
+          doc.line(M, y, PAGE_W - M, y);
+          y += offsetAfter;
+        };
+
+        doc.setFontSize(15);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...C.ink);
+        doc.text(BRAND.name, M, y + 2);
+
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...C.muted);
+        doc.text(BRAND.tagline, M, y + 7);
+
+        const dateStr = new Date().toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric" });
+        doc.setFontSize(9);
+        doc.setTextColor(...C.muted);
+        doc.text("Analyse-Bericht", PAGE_W - M, y + 2, { align: "right" });
+        doc.text(dateStr, PAGE_W - M, y + 7, { align: "right" });
+        y += 12;
+        hr(0, 4);
+
+        para("KI-Bot Analyzer + GEO-Check", { size: 16, style: "bold", color: C.ink, after: 2 });
+        para("Getestete Adresse: " + (lastResult.url || ""), { size: 10, color: C.muted, after: 6 });
+
+        para("Bot-Zugriffs-Analyse", { size: 13, style: "bold", color: C.ink, after: 3 });
+
+        const COL = {
+          name:    M,
+          status:  M + 55,
+          http:    M + 90,
+          robots:  M + 108,
+          time:    PAGE_W - M,
+        };
+
+        doc.setFontSize(7.5);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...C.subtle);
+        doc.text("KI-BOT",     COL.name, y);
+        doc.text("STATUS",     COL.status, y);
+        doc.text("HTTP",       COL.http, y);
+        doc.text("ROBOTS.TXT", COL.robots, y);
+        doc.text("ANTWORTZEIT", COL.time, y, { align: "right" });
+        y += 2;
+        doc.setDrawColor(...C.line);
+        doc.setLineWidth(0.2);
+        doc.line(M, y, PAGE_W - M, y);
+        y += 4;
+
+        const STATUS_DE = { allowed: "Erlaubt", blocked: "Blockiert", error: "Fehler" };
+        const STATUS_COL = { allowed: C.green, blocked: C.red, error: C.amber };
+
+        for (const bot of (lastResult.results || [])) {
+          ensure(9);
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(...C.ink);
+          doc.text(bot.name, COL.name, y);
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(...C.subtle);
+          doc.text(bot.vendor || "", COL.name, y + 3);
+
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(...(STATUS_COL[bot.status] || C.muted));
+          doc.text(STATUS_DE[bot.status] || bot.status || "—", COL.status, y);
+
+          doc.setFontSize(9);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(...C.text);
+          doc.text(String(bot.http ?? "—"), COL.http, y);
+
+          doc.setTextColor(...(bot.robotsTxt ? C.green : C.red));
+          doc.text(bot.robotsTxt ? "erlaubt" : "blockiert", COL.robots, y);
+
+          doc.setTextColor(...C.text);
+          doc.text(bot.responseTime || "—", COL.time, y, { align: "right" });
+
+          y += 7;
+          doc.setDrawColor(...C.line2);
+          doc.line(M, y - 1, PAGE_W - M, y - 1);
+        }
+        y += 5;
+
+        if (lastResult.geo && lastResult.geo.score) {
+          ensure(15);
+          para("GEO-Check", { size: 13, style: "bold", color: C.ink, after: 1 });
+
+          const sc = lastResult.geo.score;
+          const pct = sc.earned / sc.max;
+          const scoreColor = pct >= 0.8 ? C.green : pct >= 0.5 ? C.amber : C.red;
+
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(...C.muted);
+          doc.text("Gesamt-Score: ", M, y);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(...scoreColor);
+          doc.text(`${sc.earned} / ${sc.max}`, M + 28, y);
+          y += 8;
+
+          const STATUS_BADGE = {
+            pass: ["Erfüllt",      C.green],
+            warn: ["Verbesserbar", C.amber],
+            fail: ["Fehlt",        C.red],
+            info: ["Hinweis",      C.muted],
+          };
+
+          const all = [...(lastResult.geo.checks || []), lastResult.geo.grounding, lastResult.geo.llmstxt].filter(Boolean);
+          for (const c of all) {
+            ensure(20);
+            const [bLabel, bColor] = STATUS_BADGE[c.status] || STATUS_BADGE.info;
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...C.ink);
+            doc.text(c.label, M, y);
+
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...bColor);
+            doc.text(bLabel, PAGE_W - M, y, { align: "right" });
+            y += 4.5;
+
+            para(c.value || "", { size: 9, color: C.muted, after: 1 });
+
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...C.text);
+            const recLabel = "Empfehlung: ";
+            const labelW = doc.getTextWidth(recLabel);
+            const recText = c.recommendation || "";
+            const recLines = doc.splitTextToSize(recText, CW - labelW);
+            ensure(recLines.length * 4.3 + 4);
+            doc.text(recLabel, M, y);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(...C.text);
+            doc.text(recLines, M + labelW, y);
+            y += recLines.length * 4.3 + 4;
+
+            doc.setDrawColor(...C.line2);
+            doc.line(M, y, PAGE_W - M, y);
+            y += 4;
+          }
+        }
+
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          doc.setFontSize(7);
+          doc.setTextColor(...C.subtle);
+          doc.text(
+            `Analyse erstellt mit dem GEO-Analyzer von ${BRAND.name} · ${BRAND.contactEmail} · ${BRAND.website}`,
+            PAGE_W / 2, PAGE_H - 8, { align: "center" }
+          );
+          doc.text(`Seite ${i} / ${totalPages}`, PAGE_W - M, PAGE_H - 8, { align: "right" });
+        }
+
+        const safeHost = (() => {
+          try { return new URL(lastResult.url).hostname.replace(/^www\./,""); }
+          catch { return "geo-check"; }
+        })();
+        const filename = `geo-check_${safeHost}_${new Date().toISOString().slice(0,10)}.pdf`;
+        doc.save(filename);
+      } catch (e) {
+        console.error(e);
+        alert("PDF konnte nicht erstellt werden. Bitte versuche es nochmal.");
+      } finally {
+        pdfBtn.disabled = false;
+        pdfLabel.textContent = "Als PDF speichern";
+        pdfSpinner.classList.add("hidden");
+      }
+    });
+
+    function postHeight() {
+      const h = document.documentElement.scrollHeight;
+      try { parent.postMessage({ type: "kiBotAnalyzerHeight", height: h }, "*"); } catch (e) {}
+    }
+    if (window.ResizeObserver) new ResizeObserver(postHeight).observe(document.body);
+    window.addEventListener("load", postHeight);
+  </script>
+</body>
+</html>
