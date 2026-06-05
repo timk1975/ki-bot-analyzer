@@ -100,6 +100,29 @@
         <button id="reset" class="text-sm border border-slate-300 hover:bg-slate-50 rounded-lg px-4 py-1.5 transition">Andere Adresse testen</button>
       </div>
     </div>
+
+    <!-- Call-to-Action: direkt unter der Ergebnis-Tabelle -->
+    <div class="mt-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl p-7 md:p-9 shadow-lg">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="md:flex-1">
+          <div class="flex items-center gap-2 text-blue-100 text-xs font-semibold tracking-wide uppercase mb-2">
+            <span>💬</span><span>Nächster Schritt</span>
+          </div>
+          <h3 class="text-xl md:text-2xl font-bold leading-snug mb-2">
+            Möchtest du das Ergebnis und generell die neuen Möglichkeiten im Kontext KI-Suche für dein Unternehmen mit mir besprechen?
+          </h3>
+          <p class="text-blue-100 text-sm">Dann klick den Button – ich melde mich persönlich bei dir.</p>
+        </div>
+        <div class="md:flex-shrink-0">
+          <a id="contact-cta"
+             href="mailto:tik@tim-kloetzing.de?subject=GEO-Anfrage%20%C3%BCber%20GEO-Analyzer"
+             class="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-semibold px-6 py-3.5 rounded-lg shadow-md transition whitespace-nowrap">
+            <span>✉️</span>
+            <span>E-Mail zum Austausch mit Tim Klötzing</span>
+          </a>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Erklär-Spalten -->
@@ -300,6 +323,22 @@
         }
         resultsBody.innerHTML = data.results.map(renderRow).join("");
         document.getElementById("tested-url").textContent = "Getestete Adresse: " + data.url;
+
+        // Getestete Adresse + Kurz-Zusammenfassung in den mailto-Link einbetten,
+        // damit Tim direkt im Posteingang sieht, worum es geht.
+        const counts = data.results.reduce((a, r) => (a[r.status] = (a[r.status] || 0) + 1, a), {});
+        const summary = `Erlaubt: ${counts.allowed || 0} · Blockiert: ${counts.blocked || 0} · Fehler: ${counts.error || 0}`;
+        const body =
+          "Hallo Tim,\n\n" +
+          "ich habe gerade meine Website mit dem GEO-Analyzer geprüft und würde die Ergebnisse gern mit dir besprechen.\n\n" +
+          "Getestete Adresse: " + data.url + "\n" +
+          "Zusammenfassung: " + summary + "\n\n" +
+          "Viele Grüße";
+        document.getElementById("contact-cta").href =
+          "mailto:tik@tim-kloetzing.de" +
+          "?subject=" + encodeURIComponent("GEO-Anfrage über GEO-Analyzer") +
+          "&body=" + encodeURIComponent(body);
+
         resultsSection.classList.remove("hidden");
         resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (e) {
@@ -330,6 +369,6 @@
     }
     if (window.ResizeObserver) new ResizeObserver(postHeight).observe(document.body);
     window.addEventListener("load", postHeight);
-</script>
+  </script>
 </body>
 </html>
